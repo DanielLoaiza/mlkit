@@ -51,6 +51,8 @@ class TextAnalyzer(
 
     @androidx.camera.core.ExperimentalGetImage
     override fun analyze(imageProxy: ImageProxy) {
+        Log.i("Caren", "starting analyze")
+
         val mediaImage = imageProxy.image ?: return
         if (isBusy) return
 
@@ -72,6 +74,7 @@ class TextAnalyzer(
             ImageUtils.rotateAndCrop(convertImageToBitmap, 0, cropRect);
         recognizeTextOnDevice(InputImage.fromBitmap(croppedBitmap, 0)).addOnCompleteListener {
             isBusy = false
+            imageProxy.close()
         }
     }
 
