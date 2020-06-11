@@ -25,23 +25,26 @@ import android.hardware.display.DisplayManager
 import android.os.Bundle
 import android.util.DisplayMetrics
 import android.util.Log
-import android.view.*
+import android.view.LayoutInflater
+import android.view.SurfaceHolder
+import android.view.View
+import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.camera.core.*
 import androidx.camera.core.Camera
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import com.google.mlkit.showcase.translate.R
 import com.google.mlkit.showcase.translate.analyzer.TextAnalyzer
 import com.google.mlkit.showcase.translate.util.Language
 import kotlinx.android.synthetic.main.main_fragment.*
-import androidx.fragment.app.viewModels
-import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.camera.view.PreviewView
-import androidx.constraintlayout.widget.ConstraintLayout
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlin.math.abs
@@ -122,6 +125,9 @@ class MainFragment : Fragment() {
             requestPermissions(REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
         }
 
+        // Every time the orientation of device changes, update rotation for use cases
+        displayManager.registerDisplayListener(displayListener, null)
+
         // Get available language list and set up the target language spinner
         // with default selections.
         val adapter = ArrayAdapter(
@@ -163,9 +169,6 @@ class MainFragment : Fragment() {
             progressText.visibility = progressBar.visibility
         })
 
-        // Every time the orientation of device changes, update rotation for use cases
-        displayManager.registerDisplayListener(displayListener, null)
-
         overlay.apply {
             setZOrderOnTop(true)
             holder.setFormat(PixelFormat.TRANSPARENT)
@@ -188,7 +191,6 @@ class MainFragment : Fragment() {
             })
         }
     }
-
 
 
     /** Initialize CameraX, and prepare to bind the camera use cases  */
@@ -236,7 +238,10 @@ class MainFragment : Fragment() {
             // The analyzer can then be assigned to the instance
             .also {
                 it.setAnalyzer(
-                    cameraExecutor, TextAnalyzer(
+                    // imageProcessor.processImageProxy will use another thread to run the detection underneath,
+                    // thus we can just runs the analyzer itself on main thread.
+                    ContextCompat.getMainExecutor(requireContext())
+                    , TextAnalyzer(
                         requireContext(),
                         viewModel.sourceText,
                         widthCropPercent = WIDTH_CROP_PERCENT,

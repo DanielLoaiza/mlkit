@@ -60,14 +60,14 @@ class TextAnalyzer(
 
         // If the image is rotated by 90 (or 270) degrees, swap height and width when calculating
         // the crop.
-//        val (widthCrop, heightCrop) = when(imageRotationDegrees) {
-//            90, 270 -> Pair(heightCropPercent / 100f, widthCropPercent / 100f)
-//            else -> Pair(widthCropPercent / 100f, heightCropPercent / 100f)
-//        }
-//        cropRect.inset(
-//            (mediaImage.width * widthCrop / 2).toInt(),
-//            (mediaImage.height * heightCrop / 2).toInt()
-//        )
+        val (widthCrop, heightCrop) = when(0) {
+            90, 270 -> Pair(heightCropPercent / 100f, widthCropPercent / 100f)
+            else -> Pair(widthCropPercent / 100f, heightCropPercent / 100f)
+        }
+        cropRect.inset(
+            (mediaImage.width * widthCrop / 2).toInt(),
+            (mediaImage.height * heightCrop / 2).toInt()
+        )
         val croppedBitmap =
             ImageUtils.rotateAndCrop(convertImageToBitmap, 0, cropRect);
         recognizeTextOnDevice(InputImage.fromBitmap(croppedBitmap, 0)).addOnCompleteListener {
@@ -78,6 +78,7 @@ class TextAnalyzer(
     private fun recognizeTextOnDevice(
         image: InputImage
     ): Task<Text> {
+        Log.i("Caren", "running text recognition")
         // Pass image to an ML Kit Vision API
         return detector.process(image)
             .addOnSuccessListener { visionText ->
